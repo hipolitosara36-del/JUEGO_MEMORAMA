@@ -1,6 +1,6 @@
 import os
-from .models.juego import Juego
-from .models.tablero import Tablero
+from models.juego import Juego
+from models.tablero import Tablero
 
 # Diccionarios de almacenamiento temporal (simulando persistencia)
 JUEGOS_ACTIVOS = {}
@@ -8,7 +8,7 @@ TABLEROS_ACTIVOS = {}
 
 # Lista de imágenes disponibles (ejemplo, debes adaptarla a tus archivos)
 # Asume que tienes 10 imágenes: img_1.png, img_2.png, ..., img_10.png
-IMAGENES_DISPONIBLES = [f'img_{i}.png' for i in range(1, 11)]
+IMAGENES_DISPONIBLES = [f"imagenes/{i}.png" for i in range(1, 11)]
 
 class JuegoDAO:
     def __init__(self):
