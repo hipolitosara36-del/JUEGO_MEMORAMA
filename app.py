@@ -4,10 +4,9 @@ import uuid
 import os
 
 app = Flask(__name__)
-app.secret_key = 'tu_clave_secreta_aqui_cambiarla'  # ⚠️ Cambiar en producción
+app.secret_key = 'tu_clave_secreta_aqui_cambiarla'  #Cambiar en producción
 
-# ✅ IMPORTANTE: Configurar carpeta estática (donde están las imágenes)
-# Flask busca automáticamente en 'static/', pero lo definimos explícitamente
+# Configurar carpeta estática
 app.static_folder = 'static'
 app.static_url_path = '/static'
 
@@ -17,7 +16,6 @@ juego_dao = JuegoDAO()
 @app.route('/')
 def index():
     """Página principal del juego"""
-    # Generar ID de sesión único
     if 'id_sesion' not in session:
         session['id_sesion'] = str(uuid.uuid4())
     
@@ -25,7 +23,6 @@ def index():
 
 @app.route('/api/iniciar_juego', methods=['POST'])
 def iniciar_juego():
-    """Inicia un nuevo juego"""
     id_sesion = session.get('id_sesion')
     data = request.get_json()
     nivel = data.get('nivel', 1)
@@ -41,7 +38,6 @@ def iniciar_juego():
 
 @app.route('/api/obtener_estado', methods=['GET'])
 def obtener_estado():
-    """Obtiene el estado actual del juego"""
     id_sesion = session.get('id_sesion')
     juego = juego_dao.obtener_juego(id_sesion)
     tablero = juego_dao.obtener_tablero(id_sesion)
@@ -57,24 +53,23 @@ def obtener_estado():
 
 @app.route('/api/voltear_carta', methods=['POST'])
 def voltear_carta():
-    """Voltea una carta"""
     id_sesion = session.get('id_sesion')
     data = request.get_json()
     posicion = data.get('posicion')
     
     juego = juego_dao.obtener_juego(id_sesion)
-    
     if not juego:
         return jsonify({'exito': False, 'mensaje': 'No hay juego activo'})
     
-    # Voltear la carta
     carta = juego_dao.voltear_carta(id_sesion, posicion)
-    
     if carta is None:
         return jsonify({'exito': False, 'mensaje': 'No se puede voltear la carta'})
-    
-    # ✅ Agregar prefijo /static/ para que Flask sirva la imagen correctamente
-    carta_url = f"/static/{carta}"
+
+    # ✅ FIX IMPORTANTE: NO DUPLICAR /static/
+    if carta.startswith("static/"):
+        carta_url = "/" + carta
+    else:
+        carta_url = "/static/" + carta
     
     return jsonify({
         'exito': True,
@@ -85,9 +80,7 @@ def voltear_carta():
 
 @app.route('/api/verificar_pareja', methods=['POST'])
 def verificar_pareja():
-    """Verifica si las cartas volteadas son pareja"""
     id_sesion = session.get('id_sesion')
-    
     resultado = juego_dao.verificar_pareja(id_sesion)
     juego = juego_dao.obtener_juego(id_sesion)
     
@@ -103,7 +96,6 @@ def verificar_pareja():
 
 @app.route('/api/subir_nivel', methods=['POST'])
 def subir_nivel():
-    """Sube al siguiente nivel"""
     id_sesion = session.get('id_sesion')
     
     juego = juego_dao.subir_nivel(id_sesion)
@@ -120,7 +112,6 @@ def subir_nivel():
 
 @app.route('/api/actualizar_tiempo', methods=['POST'])
 def actualizar_tiempo():
-    """Actualiza el tiempo del juego (llamado cada segundo desde el frontend)"""
     id_sesion = session.get('id_sesion')
     
     juego = juego_dao.reducir_tiempo(id_sesion)
@@ -134,18 +125,18 @@ def actualizar_tiempo():
         'activo': juego.activo
     })
 
-# ✅ Endpoint adicional para obtener todas las cartas del tablero (útil para debugging)
 @app.route('/api/obtener_tablero', methods=['GET'])
 def obtener_tablero_completo():
-    """Obtiene todas las cartas del tablero (solo para desarrollo)"""
     id_sesion = session.get('id_sesion')
     tablero = juego_dao.obtener_tablero(id_sesion)
     
     if not tablero:
         return jsonify({'exito': False, 'mensaje': 'No hay tablero activo'})
     
-    # Agregar prefijo /static/ a todas las cartas
-    cartas_con_url = [f"/static/{carta}" for carta in tablero.cartas]
+    cartas_con_url = [
+        "/" + c if c.startswith("static/") else "/static/" + c
+        for c in tablero.cartas
+    ]
     
     return jsonify({
         'exito': True,
@@ -155,14 +146,10 @@ def obtener_tablero_completo():
     })
 
 if __name__ == '__main__':
-    # ✅ Verificar que la carpeta de imágenes existe
     imagenes_path = os.path.join(app.static_folder, 'imagenes')
     if not os.path.exists(imagenes_path):
         print(f"⚠️ ADVERTENCIA: La carpeta {imagenes_path} no existe.")
-        print(f"   Crea la carpeta y coloca las imágenes ahí:")
-        print(f"   mkdir -p {imagenes_path}")
     else:
-        # Listar imágenes disponibles
         imagenes = os.listdir(imagenes_path)
         print(f"✅ Imágenes encontradas: {imagenes}")
     

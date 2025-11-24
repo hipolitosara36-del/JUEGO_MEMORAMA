@@ -8,6 +8,11 @@ class Juego:
         3: 6,  # 12 cartas (4x3)
         4: 8,  # 16 cartas (4x4)
         5: 10, # 20 cartas (5x4)
+        6: 12, # 24 cartas (6x4)
+        7: 15,  # 30 cartas (6x5)
+        8: 18,  # 36 cartas (6x6)
+        9: 20,  # 40 cartas (8x5)
+        10: 24, # 48 cartas (8x6) 
     }
 
     def __init__(self, id_sesion, nivel=1):
@@ -18,7 +23,7 @@ class Juego:
         self.cartas_volteadas = []
         self.pares_encontrados = 0
         
-        # --- NUEVOS CAMPOS DE PUNTUACIÓN Y TIEMPO ---
+        # --- CAMPOS DE PUNTUACIÓN Y TIEMPO ---
         # El tiempo se calcula según el total de pares: 10 segundos por par
         self.tiempo_inicial = self.total_pares * 10 
         self.tiempo_restante = self.tiempo_inicial

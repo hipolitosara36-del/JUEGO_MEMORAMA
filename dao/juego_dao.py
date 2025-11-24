@@ -5,9 +5,9 @@ from models.tablero import Tablero
 # Diccionarios de almacenamiento temporal (simulando persistencia)
 JUEGOS_ACTIVOS = {}
 TABLEROS_ACTIVOS = {}
-
-# ✅ Ruta correcta de imágenes (relativa a la carpeta static)
-IMAGENES_DISPONIBLES = [f"imagenes/{i}.png" for i in range(1, 11)]
+      
+# Ruta correcta de imágenes (relativa a la carpeta static)
+IMAGENES_DISPONIBLES = [f"imagenes/{i}.png" for i in range(1, 48)]
 
 class JuegoDAO:
     def __init__(self):
@@ -22,6 +22,12 @@ class JuegoDAO:
         # 2. Crear el objeto Tablero
         total_pares = juego.total_pares
         tablero = Tablero(total_pares, IMAGENES_DISPONIBLES)
+        
+        print(f"🔍 Creando juego - Nivel: {nivel}")
+        print(f"🔍 Total pares: {total_pares}")
+        print(f"🔍 Tiene carta tiempo: {tablero.tiene_carta_tiempo}")
+        print(f"🔍 Total cartas en tablero: {len(tablero.cartas)}")
+        print(f"🔍 Primeras 5 cartas: {tablero.cartas[:5]}")
         
         # 3. Guardar en "base de datos" (diccionario en memoria)
         JUEGOS_ACTIVOS[id_sesion] = juego
