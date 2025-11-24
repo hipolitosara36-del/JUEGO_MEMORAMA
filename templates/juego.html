@@ -109,12 +109,35 @@
             cursor: not-allowed;
         }
 
+        /* ✅ NUEVO: Estilo para carta de tiempo extra */
+        .carta.tiempo-extra {
+            animation: brillo-tiempo 2s infinite;
+            border: 3px solid gold;
+        }
+
+        @keyframes brillo-tiempo {
+            0%, 100% { box-shadow: 0 0 10px gold; }
+            50% { box-shadow: 0 0 20px gold, 0 0 30px gold; }
+        }
+
         #mensaje {
             text-align: center;
             margin-top: 20px;
             font-size: 1.2em;
             color: #667eea;
             min-height: 30px;
+        }
+
+        /* ✅ NUEVO: Mensaje de tiempo extra */
+        .mensaje-tiempo-extra {
+            color: #28a745 !important;
+            font-weight: bold;
+            animation: rebote 0.5s ease;
+        }
+
+        @keyframes rebote {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
         }
 
         .btn {
@@ -142,6 +165,33 @@
         @keyframes parpadeo {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        /* ✅ NUEVO: Notificación flotante */
+        .notificacion {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            font-size: 1.2em;
+            font-weight: bold;
+            animation: aparecer 0.5s ease;
+            z-index: 1000;
+        }
+
+        @keyframes aparecer {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
         }
     </style>
 </head>
@@ -200,7 +250,14 @@
                     actualizarUI(data.juego, data.tablero);
                     dibujarTablero(data.tablero);
                     iniciarTemporizador();
-                    mensajeDiv.textContent = '¡Encuentra todos los pares!';
+                    
+                    // ✅ NUEVO: Mostrar aviso si hay carta de tiempo
+                    if (data.tablero.tiene_carta_tiempo) {
+                        mensajeDiv.textContent = '¡Encuentra la carta de tiempo extra! ⏰';
+                    } else {
+                        mensajeDiv.textContent = '¡Encuentra todos los pares!';
+                    }
+                    
                     btnIniciar.style.display = 'none';
                 }
             } catch (error) {
@@ -220,7 +277,7 @@
                 carta.dataset.posicion = i;
                 
                 const img = document.createElement('img');
-                img.src = '/static/imagenes/interrogacion.png';
+                img.src = '/static/imagenes/reverso.png';
                 img.alt = 'Carta oculta';
                 carta.appendChild(img);
                 
@@ -248,6 +305,21 @@
                     cartaElemento.classList.add('volteada');
                     cartaElemento.disabled = true;
                     
+                    // ✅ NUEVO: Manejar carta de tiempo extra
+                    if (data.es_tiempo_extra) {
+                        cartaElemento.classList.add('tiempo-extra', 'encontrada');
+                        tiempoSpan.textContent = data.nuevo_tiempo;
+                        mostrarNotificacion(data.mensaje);
+                        mensajeDiv.textContent = data.mensaje;
+                        mensajeDiv.classList.add('mensaje-tiempo-extra');
+                        
+                        setTimeout(() => {
+                            mensajeDiv.classList.remove('mensaje-tiempo-extra');
+                        }, 2000);
+                        
+                        return;
+                    }
+                    
                     if (data.puede_verificar) {
                         esperandoVerificacion = true;
                         setTimeout(() => verificarPareja(), 1000);
@@ -256,6 +328,18 @@
             } catch (error) {
                 console.error('Error al voltear carta:', error);
             }
+        }
+
+        // ✅ NUEVO: Función para mostrar notificación flotante
+        function mostrarNotificacion(mensaje) {
+            const notif = document.createElement('div');
+            notif.className = 'notificacion';
+            notif.textContent = mensaje;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.remove();
+            }, 3000);
         }
 
         async function verificarPareja() {
@@ -278,7 +362,7 @@
                     } else {
                         setTimeout(() => {
                             cartasVolteadas.forEach(carta => {
-                                carta.querySelector('img').src = '/static/imagenes/interrogacion.png';
+                                carta.querySelector('img').src = '/static/imagenes/reverso.png';
                                 carta.classList.remove('volteada');
                                 carta.disabled = false;
                             });
@@ -318,7 +402,13 @@
                         actualizarUI(data.juego, data.tablero);
                         dibujarTablero(data.tablero);
                         iniciarTemporizador();
-                        mensajeDiv.textContent = `¡Nivel ${data.juego.nivel}! ¡Vamos!`;
+                        
+                        // ✅ NUEVO: Mensaje específico por nivel
+                        if (data.juego.nivel >= 4) {
+                            mensajeDiv.textContent = `¡Nivel ${data.juego.nivel}! ¡Busca la carta de tiempo! ⏰`;
+                        } else {
+                            mensajeDiv.textContent = `¡Nivel ${data.juego.nivel}! ¡Vamos!`;
+                        }
                     }
                 } catch (error) {
                     console.error('Error al subir nivel:', error);
@@ -370,8 +460,7 @@
         }
 
         function actualizarPares(juego) {
-            const totalPares = Math.floor((2 * juego.nivel) * (2 * juego.nivel) / 2);
-            paresSpan.textContent = `${juego.pares_encontrados} / ${totalPares}`;
+            paresSpan.textContent = `${juego.pares_encontrados} / ${juego.total_pares}`;
         }
 
         function deshabilitarCartas() {
