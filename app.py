@@ -3,7 +3,7 @@ from dao.juego_dao import JuegoDAO
 import uuid
 import os
 
-app = Flask(__name__)
+app = Flask(__name__)   # ← AQUÍ LO CORREGÍ
 app.secret_key = 'tu_clave_secreta_aqui_cambiarla'
 
 app.static_folder = 'static'
@@ -11,11 +11,16 @@ app.static_url_path = '/static'
 
 juego_dao = JuegoDAO()
 
+
+from dao.conexion import ConexionSQL
+ConexionSQL().conectar()
+
 @app.route('/')
 def index():
     if 'id_sesion' not in session:
         session['id_sesion'] = str(uuid.uuid4())
     return render_template('juego.html')
+
 
 @app.route('/api/iniciar_juego', methods=['POST'])
 def iniciar_juego():
@@ -32,6 +37,7 @@ def iniciar_juego():
         'tablero': tablero.to_dict()
     })
 
+
 @app.route('/api/obtener_estado', methods=['GET'])
 def obtener_estado():
     id_sesion = session.get('id_sesion')
@@ -47,6 +53,7 @@ def obtener_estado():
         'juego': juego.to_dict(),
         'tablero': tablero.to_dict()
     })
+
 
 @app.route('/api/voltear_carta', methods=['POST'])
 def voltear_carta():
@@ -74,6 +81,7 @@ def voltear_carta():
         'puede_verificar': len(juego.cartas_volteadas) == 2
     })
 
+
 @app.route('/api/verificar_pareja', methods=['POST'])
 def verificar_pareja():
     id_sesion = session.get('id_sesion')
@@ -91,6 +99,7 @@ def verificar_pareja():
         'juego': juego.to_dict()
     })
 
+
 @app.route('/api/subir_nivel', methods=['POST'])
 def subir_nivel():
     id_sesion = session.get('id_sesion')
@@ -106,6 +115,7 @@ def subir_nivel():
         'juego': juego.to_dict(),
         'tablero': tablero.to_dict()
     })
+
 
 @app.route('/api/actualizar_tiempo', methods=['POST'])
 def actualizar_tiempo():
@@ -123,6 +133,7 @@ def actualizar_tiempo():
         'puntaje': juego.puntaje,
         'progreso': juego.progreso
     })
+
 
 @app.route('/api/obtener_tablero', methods=['GET'])
 def obtener_tablero_completo():
@@ -143,6 +154,7 @@ def obtener_tablero_completo():
         'filas': tablero.filas,
         'columnas': tablero.columnas
     })
+
 
 if __name__ == '__main__':
     imagenes_path = os.path.join(app.static_folder, 'imagenes')
